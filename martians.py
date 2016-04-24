@@ -95,26 +95,26 @@ def extract_diffs(DiffTextPrep, DiffTable):
                     type = "deletion"
                     deletion = 1
                 # Composite cases: two criteria apply
-                elif re.sub(" ","",item1.lower()) == re.sub(" ","",item2.lower()):
+                elif (re.sub(" ","",item1.lower()) == re.sub(" ","",item2.lower())) and (re.sub(" ","",item1) != re.sub(" ","",item2)) and (item1.lower() != item2.lower()):
                     type = "combination"
                     capitalization = 1                
                     whitespace = 1
-                elif re.sub("\*","",item1) == re.sub("\*","",item2): 
-                    type = "combination"
-                    capitalization = 1                
-                    italics = 1
-                elif re.sub("[\",';:!?\.\(\)]","",item1.lower()) == re.sub("[\",';:!?\.\(\)]","",item2.lower()):
-                    type = "combination"
-                    capitalization = 1                
-                    punctuation = 1
-                elif re.sub("\-","",item1.lower()) == re.sub(" ","",item2.lower()): 
-                    type = "combination"
-                    hyphenation = 1
-                    capitalization = 1                
-                elif re.sub(" ","",item1.lower()) == re.sub("\-","",item2.lower()): 
-                    type = "combination"
-                    hyphenation = 1
-                    capitalization = 1                
+#                elif re.sub("\*","",item1) == re.sub("\*","",item2): 
+#                    type = "combination"
+#                    capitalization = 1                
+#                    italics = 1
+#                elif re.sub("[\",';:!?\.\(\)]","",item1.lower()) == re.sub("[\",';:!?\.\(\)]","",item2.lower()):
+#                    type = "combination"
+#                    capitalization = 1                
+#                    punctuation = 1
+#                elif re.sub("\-","",item1.lower()) == re.sub(" ","",item2.lower()): 
+#                    type = "combination"
+#                    hyphenation = 1
+#                    capitalization = 1                
+#                elif re.sub(" ","",item1.lower()) == re.sub("\-","",item2.lower()): 
+#                    type = "combination"
+#                    hyphenation = 1
+#                    capitalization = 1                
                 # Simple cases: only one criterion applies
                 elif item1.lower() == item2.lower(): 
                     type = "capitalization"

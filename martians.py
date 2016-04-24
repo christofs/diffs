@@ -3,7 +3,7 @@
 # Filename: martians.py
 # Author: Christof Schöch, 2016.
 
-WorkDir = "/home/christof/Dropbox/0-Analysen/2016/martians/diffs2/"
+WorkDir = "/media/christof/data/Dropbox/0-Analysen/2016/martians/diffs3/"
 InputTexts = WorkDir + "texts/*.txt"
 DiffText = WorkDir + "martians_wdiffed.txt"
 DiffTextPrep = WorkDir + "martians_wdiffed-prep.txt"
@@ -33,14 +33,13 @@ def sentence_splitter(InputTexts):
 
 
 """
-Now do: wdiff --avoid-wraps martians1-sent.txt martians2-sent.txt > martians_wdiffed.txt
+Now do, in [WorkDir]/texts: wdiff --avoid-wraps martian1-sent.txt martian2-sent.txt > martians_wdiffed.txt
 """
 
 
 def prepare_text(DiffText, DiffTextPrep): 
     """Make sure all locations of a modification are marked coherently."""
     with open(DiffText, "r") as df: 
-        filename = os.path.basename(DiffText)[:-4]
         diff_text = df.read()
         diff_text = re.sub("]\n{", "] {", diff_text)
         diff_text = re.sub("]{", "] {", diff_text)
@@ -74,6 +73,7 @@ def extract_diffs(DiffTextPrep, DiffTable):
                 item_id = str(sent_number)+"-"+str(item_number)
                 item = re.split("\] {", item)
                 #print(item_id, item)
+                type = ""
                 item1 = item[0][2:-1]
                 item2 = item[1][1:-2]
                 insertion = 0
@@ -87,12 +87,35 @@ def extract_diffs(DiffTextPrep, DiffTable):
                 condensation = 0
                 expansion = 0
                 tbc = 0
+                # Complete deletion or insertion
                 if len(item1) == 0:
                     type = "insertion"
                     insertion = 1
                 elif len(item2) == 0:
                     type = "deletion"
                     deletion = 1
+                # Composite cases: two criteria apply
+                elif re.sub(" ","",item1.lower()) == re.sub(" ","",item2.lower()):
+                    type = "combination"
+                    capitalization = 1                
+                    whitespace = 1
+                elif re.sub("\*","",item1) == re.sub("\*","",item2): 
+                    type = "combination"
+                    capitalization = 1                
+                    italics = 1
+                elif re.sub("[\",';:!?\.\(\)]","",item1.lower()) == re.sub("[\",';:!?\.\(\)]","",item2.lower()):
+                    type = "combination"
+                    capitalization = 1                
+                    punctuation = 1
+                elif re.sub("\-","",item1.lower()) == re.sub(" ","",item2.lower()): 
+                    type = "combination"
+                    hyphenation = 1
+                    capitalization = 1                
+                elif re.sub(" ","",item1.lower()) == re.sub("\-","",item2.lower()): 
+                    type = "combination"
+                    hyphenation = 1
+                    capitalization = 1                
+                # Simple cases: only one criterion applies
                 elif item1.lower() == item2.lower(): 
                     type = "capitalization"
                     capitalization = 1
@@ -114,12 +137,14 @@ def extract_diffs(DiffTextPrep, DiffTable):
                 elif bool(re.search(r'\d', item1+item2)) == True:
                     type = "numbers"
                     numbers = 1
+                # If none of the more specific cases apply:
                 elif len(item1) > len(item2)+3:
                     type = "condensation"
                     condensation = 1
                 elif len(item2) > len(item1)+3:
                     type = "expansion"
                     expansion = 1
+                # All still unclassified cases:
                 else: 
                     type = "tbc"
                     tbc = 1
@@ -129,7 +154,7 @@ def extract_diffs(DiffTextPrep, DiffTable):
     diff_df = pd.DataFrame(all_diffs, columns=["item-id","version1","version2", "levenshtein",  "type", "insertion", "deletion", "capitalization", "whitespace", "italics", "punctuation", "hyphenation", "numbers", "condensation", "expansion", "tbc"])
     #print(diff_df)
     with open(DiffTable, "w") as dt: 
-        diff_df.to_csv(dt, index=False)
+        diff_df.to_csv(dt, index=False, sep="\t")
 
 
 def main(InputTexts, DiffText, DiffTextPrep, DiffTable):

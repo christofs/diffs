@@ -13,8 +13,9 @@
 import re
 import os
 import glob
+import numpy as np
 import pandas as pd
-
+from scipy import stats
 
 WorkDir = "/media/christof/data/Dropbox/0-Analysen/2016/martians/narration/"
 DiffTable = WorkDir+"DiffTable_narration.csv"
@@ -103,7 +104,11 @@ def split_narration(DiffTable, TextFirst, TextThird):
         CharDeltaAbsRelFirst = CharDeltaAbsFirst / len(TextFirstLines)
         CharDeltaAbsRelThird = LevenshteinThird / len(TextFirstLines)
         print("Absolute Char Delta (relative to lines): First", CharDeltaAbsRelFirst, "; Third", CharDeltaAbsRelThird)
-                
+        #print(EditsFirst.loc[:,"levenshtein"].mean())
+        #print(EditsThird.loc[:,"levenshtein"].mean())
+        #print(np.mean(EditsFirst.loc[:,"levenshtein"]))
+        #print(np.mean(EditsThird.loc[:,"levenshtein"]))
+
         # What was the relative levenshtein difference and absolute difference of characters relative to the number of tokens?
         LevenshteinRelFirst = LevenshteinFirst / len(TextFirstTokens)
         LevenshteinRelThird = LevenshteinThird / len(TextThirdTokens)
@@ -124,6 +129,27 @@ def split_narration(DiffTable, TextFirst, TextThird):
         print("Number of edits: Third copyedits", len(ThirdCopy), "; Third significant", len(ThirdSign))
         print("Proportion of significant edits: First", len(FirstSign)/len(EditsFirst), "; Third", len(ThirdSign)/len(EditsThird))
         print("Proportion of copyedits: First", len(FirstCopy)/len(EditsFirst), "; Third", len(ThirdCopy)/len(EditsThird))
+
+        print("\n== Significance tests ==")
+        # See http://docs.scipy.org/doc/scipy-0.16.1/reference/generated/scipy.stats.ttest_ind.html        
+
+        LevenshteinFirstList = EditsFirst.loc[:,"levenshtein"][-2200:]#.div(len(EditsFirst))
+        LevenshteinThirdList = EditsThird.loc[:,"levenshtein"][-2200:]#.div(len(EditsThird))
+        #print(LevenshteinFirstList, LevenshteinThirdList)
+        ttest = stats.ttest_ind(LevenshteinFirstList, LevenshteinThirdList, axis=0, equal_var=False)
+        print("Welch's t-test for the Levenshtein distances first vs. third: statistics", ttest[0], "p-value", ttest[1])
+
+
+        CharDeltaFirstList = EditsFirst.loc[:,"char-delta-abs"]#.div(len(EditsFirst))
+        CharDeltaThirdList = EditsThird.loc[:,"char-delta-abs"]#.div(len(EditsThird))
+        #print(CharDeltaFirstList, CharDeltaThirdList)
+        ttest = stats.ttest_ind(CharDeltaFirstList, CharDeltaThirdList, axis=0, equal_var=False)
+        print("Welch's t-test for the absolute character differences first vs. third: statistics", ttest[0], "p-value", ttest[1])
+
+
+        # See http://docs.scipy.org/doc/scipy-0.16.1/reference/generated/scipy.stats.chisquare.html        
+        #scipy.stats.ttest_ind_from_stats(mean1, std1, nobs1, mean2, std2, nobs2, equal_var=True)
+        
                
 
     print("\nDone.")
@@ -131,4 +157,24 @@ def split_narration(DiffTable, TextFirst, TextThird):
 
 split_narration(DiffTable, TextFirst, TextThird)
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
